@@ -1,18 +1,16 @@
 package jandroid.android.jeffsaa.jandroid_toolkit.Utils;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.onehilltech.metadata.ManifestMetadata;
 
 import cz.msebera.android.httpclient.Header;
-import jandroid.android.jeffsaa.jandroid_toolkit.Models.RequestParameters;
-import jandroid.android.jeffsaa.jandroid_toolkit.Models.RestClient;
-import jandroid.android.jeffsaa.jandroid_toolkit.Models.RestHandler;
-import jandroid.android.jeffsaa.jandroid_toolkit.Models.RestHeader;
+import jandroid.android.jeffsaa.jandroid_toolkit.BuildConfig;
+import jandroid.android.jeffsaa.jandroid_toolkit.Models.*;
 
 public class Rest {
-
-    private static final String BASE_URL = jandroid.android.jeffsaa.jandroid_toolkit.BuildConfig.SERVER_URL;
 
     private static RestClient client = new RestClient();
 
@@ -20,48 +18,57 @@ public class Rest {
                            String server_token_field, String server_token_value,
                            Context context, RestHandler responseHandler) {
         params.put(server_token_field, getAuthToken(context, server_token_value));
-        client.get(getAbsoluteUrl(url), params, getResponseHandler(responseHandler));
+        client.get(getAbsoluteUrl(url, context), params, getResponseHandler(responseHandler));
     }
 
-    public static void get(String url, RequestParameters params, RestHandler responseHandler) {
-        client.get(getAbsoluteUrl(url), params, getResponseHandler(responseHandler));
+    public static void get(String url, RequestParameters params, Context context, RestHandler responseHandler) {
+        client.get(getAbsoluteUrl(url, context), params, getResponseHandler(responseHandler));
     }
 
     public static void post(String url, RequestParameters params,
                             String server_token_field, String server_token_value,
                             Context context, RestHandler responseHandler) {
         params.put(server_token_field, getAuthToken(context, server_token_value));
-        client.post(getAbsoluteUrl(url), params, getResponseHandler(responseHandler));
+        client.post(getAbsoluteUrl(url, context), params, getResponseHandler(responseHandler));
     }
 
-    public static void post(String url, RequestParameters params, RestHandler responseHandler) {
-        client.post(getAbsoluteUrl(url), params, getResponseHandler(responseHandler));
+    public static void post(String url, RequestParameters params, Context context, RestHandler responseHandler) {
+        client.post(getAbsoluteUrl(url, context), params, getResponseHandler(responseHandler));
     }
 
     public static void delete(String url, RequestParameters params,
-                            String server_token_field, String server_token_value,
-                            Context context, RestHandler responseHandler) {
+                              String server_token_field, String server_token_value,
+                              Context context, RestHandler responseHandler) {
         params.put(server_token_field, getAuthToken(context, server_token_value));
-        client.delete(getAbsoluteUrl(url), params, getResponseHandler(responseHandler));
+        client.delete(getAbsoluteUrl(url, context), params, getResponseHandler(responseHandler));
     }
 
-    public static void delete(String url, RequestParameters params, RestHandler responseHandler){
-        client.delete(url, params, getResponseHandler(responseHandler));
+    public static void delete(String url, RequestParameters params, Context context, RestHandler responseHandler) {
+        client.delete(getAbsoluteUrl(url, context), params, getResponseHandler(responseHandler));
     }
 
     public static void put(String url, RequestParameters params,
-                            String server_token_field, String server_token_value,
-                            Context context, RestHandler responseHandler) {
+                           String server_token_field, String server_token_value,
+                           Context context, RestHandler responseHandler) {
         params.put(server_token_field, getAuthToken(context, server_token_value));
-        client.put(getAbsoluteUrl(url), params, getResponseHandler(responseHandler));
+        client.put(getAbsoluteUrl(url, context), params, getResponseHandler(responseHandler));
     }
 
-    public static void put(String url, RequestParameters params, RestHandler responseHandler){
-        client.put(url, params, getResponseHandler(responseHandler));
+    public static void put(String url, RequestParameters params, Context context, RestHandler responseHandler) {
+        client.put(getAbsoluteUrl(url, context), params, getResponseHandler(responseHandler));
     }
 
-    private static String getAbsoluteUrl(String relativeUrl) {
-        return BASE_URL + relativeUrl;
+    private static String getAbsoluteUrl(String relativeUrl, Context context) {
+        try {
+            ManifestMetadata metadata = ManifestMetadata.get(context);
+            if (BuildConfig.DEBUG)
+                return metadata.getValue("JAndroid-Toolkit-Server-Development-URL") + relativeUrl;
+            else
+                return metadata.getValue("JAndroid-Toolkit-Server-Production-URL") + relativeUrl;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return relativeUrl;
     }
 
     private static String getAuthToken(Context context, String server_token_value){
